@@ -51,5 +51,15 @@ namespace Api.Auth
 
             return AuthenticateResult.Success(ticket);
         }
+
+        protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            Response.StatusCode = 401;
+
+            Response.Headers["WWW-Authenticate"] = "Basic";
+
+            return Task.CompletedTask;
+        }
+
     }
 }
