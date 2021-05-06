@@ -199,6 +199,83 @@ namespace Api.Controllers
         }
 
         /// <summary>
+        /// Gets a specific geo comment based on id
+        /// </summary>
+        /// <param name="minLon">
+        /// Minimun lon range
+        /// </param>
+        /// /// <param name="minLat">
+        /// Minimun lat range
+        /// </param>
+        /// <param name="maxLon">
+        /// Maximum lon range
+        /// </param>
+        /// /// <param name="maxLat">
+        /// Maximum lat range
+        /// </param>
+        /// <returns>If found returns all geo comments matching the lon/lat requirements <see cref="GeoMessageV2Dto"/></returns>
+        [HttpGet("[action]/Range")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<GeoMessageV2Dto>> Get(int minLon, int maxLon, int minLat, int maxLat)
+        {
+            var entitiesV1 = await _context.GeoMessages
+                .Where(gm => IsInRange(gm, minLon, maxLon, minLat, maxLat))
+                .ToListAsync();
+            var entitiesV2 = await _context.GeoMessagesV2
+                .Where(gm => IsInRange(gm, minLon, maxLon, minLat, maxLat))
+                .ToListAsync();
+
+            IEnumerable<GeoMessageV2Dto> FormatV1(List<GeoMessage> entities)
+            {
+                for (int i = 0; i < entities.Count; i++)
+                {
+                    yield return new GeoMessageV2Dto()
+                    {
+                        Title = String.Join(" ", entities[i].Message.Split(" ")),
+                        Body = entities[i].Message,
+                        Author = "Rando",
+                        Longitude = entities[i].Longitude,
+                        Latitude = entities[i].Latitude
+                    };
+                }
+            }
+            IEnumerable<GeoMessageV2Dto> FormatV2(List<GeoMessageV2> entities)
+            {
+                for (int i = 0; i < entities.Count; i++)
+                {
+                    yield return new GeoMessageV2Dto()
+                    {
+                        Title = entities[i].Title,
+                        Body = entities[i].Body,
+                        Author = entities[i].Author,
+                        Longitude = entities[i].Longitude,
+                        Latitude = entities[i].Latitude
+                    };
+                }
+            }
+
+            var result = Enumerable.Empty<GeoMessageV2Dto>()
+                .Concat(FormatV1(entitiesV1))
+                .Concat(FormatV2(entitiesV2));
+
+            if (result.Count() < 1) return NoContent();
+
+            return Ok(result);
+        }
+        private bool IsInRange(GeoMessageV2 gm, int minLon, int maxLon, int minLat, int maxLat)
+        {
+            return gm.Longitude > minLon && gm.Longitude < maxLon
+                && gm.Latitude > minLat && gm.Latitude < maxLat;
+        }
+        private bool IsInRange(GeoMessage gm, int minLon, int maxLon, int minLat, int maxLat)
+        {
+            return gm.Longitude > minLon && gm.Longitude < maxLon
+                && gm.Latitude > minLat && gm.Latitude < maxLat;
+        }
+
+        /// <summary>
         /// Post a comment from a specified location defined by longitute and latitude
         /// </summary>
         /// <param name="msg">
