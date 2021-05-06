@@ -33,31 +33,7 @@ namespace Api.Controllers
         {
             var entities = await _context.GeoMessages.ToListAsync();
             var entitiesV2 = await _context.GeoMessagesV2.ToListAsync();
-            if (entities.Count < 1 || entitiesV2.Count < 1) return NoContent();
-            IEnumerable<GeoMessageDto> Format(List<GeoMessage> entities)
-            {
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    yield return new GeoMessageDto()
-                    {
-                        Message = entities[i].Message,
-                        Longitude = entities[i].Longitude,
-                        Latitude = entities[i].Latitude
-                    };
-                }
-            }
-            IEnumerable<GeoMessageDto> FormatV2(List<GeoMessageV2> entities)
-            {
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    yield return new GeoMessageDto()
-                    {
-                        Message = entities[i].Body,
-                        Longitude = entities[i].Longitude,
-                        Latitude = entities[i].Latitude
-                    };
-                }
-            }
+            if (entities.Count < 1 && entitiesV2.Count < 1) return NoContent();
             var result = Enumerable.Empty<GeoMessageDto>()
                 .Concat(Format(entities))
                 .Concat(FormatV2(entitiesV2));
@@ -110,6 +86,31 @@ namespace Api.Controllers
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = entity.Entity.Id }, msg);
         }
+
+        private IEnumerable<GeoMessageDto> Format(List<GeoMessage> entities)
+        {
+            for (int i = 0; i < entities.Count; i++)
+            {
+                yield return new GeoMessageDto()
+                {
+                    Message = entities[i].Message,
+                    Longitude = entities[i].Longitude,
+                    Latitude = entities[i].Latitude
+                };
+            }
+        }
+        private IEnumerable<GeoMessageDto> FormatV2(List<GeoMessageV2> entities)
+        {
+            for (int i = 0; i < entities.Count; i++)
+            {
+                yield return new GeoMessageDto()
+                {
+                    Message = entities[i].Body,
+                    Longitude = entities[i].Longitude,
+                    Latitude = entities[i].Latitude
+                };
+            }
+        }
     }
 
     /// <summary>
@@ -135,36 +136,8 @@ namespace Api.Controllers
             var entitiesV1 = await _context.GeoMessages.ToListAsync();
             var entitiesV2 = await _context.GeoMessagesV2.ToListAsync();
 
-            if (entitiesV1.Count < 1 || entitiesV1.Count < 1) return NoContent();
+            if (entitiesV1.Count < 1 && entitiesV1.Count < 1) return NoContent();
 
-            IEnumerable<GeoMessageV2Dto> FormatV1(List<GeoMessage> entities)
-            {
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    yield return new GeoMessageV2Dto()
-                    {
-                        Title = String.Join(" ", entities[i].Message.Split(" ")),
-                        Body = entities[i].Message,
-                        Author = "Rando",
-                        Longitude = entities[i].Longitude,
-                        Latitude = entities[i].Latitude
-                    };
-                }
-            }
-            IEnumerable<GeoMessageV2Dto> FormatV2(List<GeoMessageV2> entities)
-            {
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    yield return new GeoMessageV2Dto()
-                    {
-                        Title = entities[i].Title,
-                        Body = entities[i].Body,
-                        Author = entities[i].Author,
-                        Longitude = entities[i].Longitude,
-                        Latitude = entities[i].Latitude
-                    };
-                }
-            }
             var result = Enumerable.Empty<GeoMessageV2Dto>()
                 .Concat(FormatV1(entitiesV1))
                 .Concat(FormatV2(entitiesV2));
@@ -226,36 +199,6 @@ namespace Api.Controllers
             var entitiesV2 = await _context.GeoMessagesV2
                 .Where(gm => IsInRange(gm, minLon, maxLon, minLat, maxLat))
                 .ToListAsync();
-
-            IEnumerable<GeoMessageV2Dto> FormatV1(List<GeoMessage> entities)
-            {
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    yield return new GeoMessageV2Dto()
-                    {
-                        Title = String.Join(" ", entities[i].Message.Split(" ")),
-                        Body = entities[i].Message,
-                        Author = "Rando",
-                        Longitude = entities[i].Longitude,
-                        Latitude = entities[i].Latitude
-                    };
-                }
-            }
-            IEnumerable<GeoMessageV2Dto> FormatV2(List<GeoMessageV2> entities)
-            {
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    yield return new GeoMessageV2Dto()
-                    {
-                        Title = entities[i].Title,
-                        Body = entities[i].Body,
-                        Author = entities[i].Author,
-                        Longitude = entities[i].Longitude,
-                        Latitude = entities[i].Latitude
-                    };
-                }
-            }
-
             var result = Enumerable.Empty<GeoMessageV2Dto>()
                 .Concat(FormatV1(entitiesV1))
                 .Concat(FormatV2(entitiesV2));
@@ -264,16 +207,7 @@ namespace Api.Controllers
 
             return Ok(result);
         }
-        private bool IsInRange(GeoMessageV2 gm, int minLon, int maxLon, int minLat, int maxLat)
-        {
-            return gm.Longitude > minLon && gm.Longitude < maxLon
-                && gm.Latitude > minLat && gm.Latitude < maxLat;
-        }
-        private bool IsInRange(GeoMessage gm, int minLon, int maxLon, int minLat, int maxLat)
-        {
-            return gm.Longitude > minLon && gm.Longitude < maxLon
-                && gm.Latitude > minLat && gm.Latitude < maxLat;
-        }
+
 
         /// <summary>
         /// Post a comment from a specified location defined by longitute and latitude
@@ -298,6 +232,44 @@ namespace Api.Controllers
             });
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = entity.Entity.Id }, msg);
+        }
+        private IEnumerable<GeoMessageV2Dto> FormatV1(List<GeoMessage> entities)
+        {
+            for (int i = 0; i < entities.Count; i++)
+            {
+                yield return new GeoMessageV2Dto()
+                {
+                    Title = String.Join(" ", entities[i].Message.Split(" ").Take(3)),
+                    Body = entities[i].Message,
+                    Author = "Rando",
+                    Longitude = entities[i].Longitude,
+                    Latitude = entities[i].Latitude
+                };
+            }
+        }
+        private IEnumerable<GeoMessageV2Dto> FormatV2(List<GeoMessageV2> entities)
+        {
+            for (int i = 0; i < entities.Count; i++)
+            {
+                yield return new GeoMessageV2Dto()
+                {
+                    Title = entities[i].Title,
+                    Body = entities[i].Body,
+                    Author = entities[i].Author,
+                    Longitude = entities[i].Longitude,
+                    Latitude = entities[i].Latitude
+                };
+            }
+        }
+        private bool IsInRange(GeoMessageV2 gm, int minLon, int maxLon, int minLat, int maxLat)
+        {
+            return gm.Longitude > minLon && gm.Longitude < maxLon
+                && gm.Latitude > minLat && gm.Latitude < maxLat;
+        }
+        private bool IsInRange(GeoMessage gm, int minLon, int maxLon, int minLat, int maxLat)
+        {
+            return gm.Longitude > minLon && gm.Longitude < maxLon
+                && gm.Latitude > minLat && gm.Latitude < maxLat;
         }
     }
 }
