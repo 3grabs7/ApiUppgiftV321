@@ -1,4 +1,6 @@
+using Api.Auth;
 using Api.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,15 +34,22 @@ namespace Api
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")
                 ));
+
             services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddAuthentication("SjukAuth")
+                .AddScheme<AuthenticationSchemeOptions, AuthenticationHandler>("SjukAuth", null);
+
             services.AddControllers();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Api", Version = "v1" });
                 c.SwaggerDoc("v2", new OpenApiInfo { Title = "Api", Version = "v2" });
             });
+
             services.AddApiVersioning(options =>
             {
                 options.AssumeDefaultVersionWhenUnspecified = true;
@@ -48,6 +57,7 @@ namespace Api
                 options.ReportApiVersions = true;
                 options.ApiVersionReader = new UrlSegmentApiVersionReader();
             });
+
             services.AddVersionedApiExplorer(o =>
             {
                 o.GroupNameFormat = "'v'VVV";

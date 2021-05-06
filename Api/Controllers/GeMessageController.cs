@@ -1,5 +1,6 @@
 ﻿using Api.Data;
 using Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +73,7 @@ namespace Api.Controllers
         /// <para>Define longitude and latitude with a maximum of 5 decimals.</para>
         /// </param>
         /// <returns>201 Created response and the created geo message <see cref="GeoMessageDto"/></returns>
+        [Authorize]
         [HttpPost("[action]")]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -99,6 +101,7 @@ namespace Api.Controllers
                 };
             }
         }
+
         private IEnumerable<GeoMessageDto> FormatV2(List<GeoMessageV2> entities)
         {
             for (int i = 0; i < entities.Count; i++)
@@ -208,7 +211,6 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-
         /// <summary>
         /// Post a comment from a specified location defined by longitute and latitude
         /// </summary>
@@ -217,22 +219,27 @@ namespace Api.Controllers
         /// <para>Define longitude and latitude with a maximum of 5 decimals.</para>
         /// </param>
         /// <returns>201 Created response and the created geo message <see cref="GeoMessageV2Dto"/></returns>
+        [Authorize]
         [HttpPost("[action]")]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<GeoMessageV2Dto>> Post([FromBody] GeoMessageV2Dto msg)
         {
+            var auth = Request.Headers["Auth"];
+            // Get name from user based on the authentication 
+            var author = "";
             var entity = await _context.AddAsync(new GeoMessageV2()
             {
                 Title = msg.Title,
                 Body = msg.Body,
-                Author = msg.Author,
+                Author = author,
                 Longitude = msg.Longitude,
                 Latitude = msg.Latitude
             });
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = entity.Entity.Id }, msg);
         }
+
         private IEnumerable<GeoMessageV2Dto> FormatV1(List<GeoMessage> entities)
         {
             for (int i = 0; i < entities.Count; i++)
@@ -247,6 +254,7 @@ namespace Api.Controllers
                 };
             }
         }
+
         private IEnumerable<GeoMessageV2Dto> FormatV2(List<GeoMessageV2> entities)
         {
             for (int i = 0; i < entities.Count; i++)
@@ -261,11 +269,13 @@ namespace Api.Controllers
                 };
             }
         }
+
         private bool IsInRange(GeoMessageV2 gm, int minLon, int maxLon, int minLat, int maxLat)
         {
             return gm.Longitude > minLon && gm.Longitude < maxLon
                 && gm.Latitude > minLat && gm.Latitude < maxLat;
         }
+
         private bool IsInRange(GeoMessage gm, int minLon, int maxLon, int minLat, int maxLat)
         {
             return gm.Longitude > minLon && gm.Longitude < maxLon
