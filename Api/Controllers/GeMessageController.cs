@@ -2,12 +2,14 @@
 using Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Api.Controllers
@@ -21,17 +23,19 @@ namespace Api.Controllers
     public class GeMessageController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public GeMessageController(ApplicationDbContext context)
+        public GeMessageController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [HttpGet("[action]")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult<IEnumerable<GeoMessageDto>>> Get()
-        {
+        {           
             var entities = await _context.GeoMessages.ToListAsync();
             var entitiesV2 = await _context.GeoMessagesV2.ToListAsync();
             if (entities.Count < 1 && entitiesV2.Count < 1) return NoContent();
@@ -78,7 +82,9 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<GeoMessageDto>> Post([FromBody] GeoMessageDto msg)
-        {
+        {           
+
+
             var entity = await _context.AddAsync(new GeoMessage()
             {
                 Message = msg.Message,
@@ -125,10 +131,12 @@ namespace Api.Controllers
     public class GeMessageV2Controller : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public GeMessageV2Controller(ApplicationDbContext context)
+        public GeMessageV2Controller(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [HttpGet("[action]")]
@@ -139,7 +147,7 @@ namespace Api.Controllers
             var entitiesV1 = await _context.GeoMessages.ToListAsync();
             var entitiesV2 = await _context.GeoMessagesV2.ToListAsync();
 
-            if (entitiesV1.Count < 1 && entitiesV1.Count < 1) return NoContent();
+            if (entitiesV1.Count < 1 && entitiesV2.Count < 1) return NoContent();
 
             var result = Enumerable.Empty<GeoMessageV2Dto>()
                 .Concat(FormatV1(entitiesV1))
@@ -225,14 +233,17 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<GeoMessageV2Dto>> Post([FromBody] GeoMessageV2Dto msg)
         {
-            var auth = Request.Headers["Auth"];
+            var userName = Request.Headers["username"].ToString();
+            var user = _context.Users.FirstOrDefaultAsync(u => u.UserName == userName).Result;
+            
+            var auth = Request.Headers["Auth"].ToString();
             // Get name from user based on the authentication 
             var author = "";
             var entity = await _context.AddAsync(new GeoMessageV2()
             {
                 Title = msg.Title,
                 Body = msg.Body,
-                Author = author,
+                Author = $"{user.FirstName} {user.LastName}",
                 Longitude = msg.Longitude,
                 Latitude = msg.Latitude
             });
