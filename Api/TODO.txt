@@ -1,0 +1,2 @@
+﻿Message ska vara ett eget objekt.
+DTO för post ska inte visa author, men i get ska den synas. 

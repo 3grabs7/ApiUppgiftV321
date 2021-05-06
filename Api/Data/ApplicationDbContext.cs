@@ -14,7 +14,7 @@ namespace Api.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         public DbSet<GeoMessage> GeoMessages { get; set; }
         public DbSet<GeoMessageV2> GeoMessagesV2 { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<User> AppUsers { get; set; }
 
     }
 }

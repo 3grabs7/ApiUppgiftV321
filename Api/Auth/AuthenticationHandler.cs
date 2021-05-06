@@ -1,5 +1,6 @@
 ﻿using Api.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
@@ -31,25 +33,38 @@ namespace Api.Auth
 
         protected async override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var userName = Request.Headers["username"].ToString();
-            if (String.IsNullOrWhiteSpace(userName))
-                return AuthenticateResult.Fail("No username");
-            var password = Request.Headers["password"].ToString();
-            if (String.IsNullOrWhiteSpace(password))
-                return AuthenticateResult.Fail("No password");
+            if (String.IsNullOrEmpty(Request.Headers["Authorization"].ToString()))
+            {
+                return AuthenticateResult.Fail("No authorization details provided.");
+            }
+            string[] userNameAndPassword = GetUserNameAndPassword();
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == userName);
+                .FirstOrDefaultAsync(u => u.UserName == userNameAndPassword[0]);
             var loginResult = await _signInManager
-                .PasswordSignInAsync(user, password, false, false);
+                .PasswordSignInAsync(user, userNameAndPassword[1], false, false);
             if (!loginResult.Succeeded)
                 return AuthenticateResult.Fail("Login failed");
 
-            var identity = new ClaimsIdentity(Scheme.Name);
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName)
+            };
+                        
+            var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
             return AuthenticateResult.Success(ticket);
+        }
+
+        private string[] GetUserNameAndPassword()
+        {
+            var authorizationToken = Request.Headers["Authorization"].ToString().Split(" ");
+            var decodeAuthToken = Encoding.UTF8.GetString(Convert.FromBase64String(authorizationToken[1]));
+            var userNameAndPassword = decodeAuthToken.Split(":");
+            return userNameAndPassword;
         }
     }
 }

@@ -233,12 +233,8 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<GeoMessageV2Dto>> Post([FromBody] GeoMessageV2Dto msg)
         {
-            var userName = Request.Headers["username"].ToString();
-            var user = _context.Users.FirstOrDefaultAsync(u => u.UserName == userName).Result;
+            var user = await _context.AppUsers.FindAsync(_userManager.GetUserId(User));            
             
-            var auth = Request.Headers["Auth"].ToString();
-            // Get name from user based on the authentication 
-            var author = "";
             var entity = await _context.AddAsync(new GeoMessageV2()
             {
                 Title = msg.Title,
