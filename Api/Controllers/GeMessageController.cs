@@ -35,7 +35,7 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult<IEnumerable<GeoMessageDto>>> Get()
-        {           
+        {
             var entities = await _context.GeoMessages.ToListAsync();
             var entitiesV2 = await _context.GeoMessagesV2.ToListAsync();
             if (entities.Count < 1 && entitiesV2.Count < 1) return NoContent();
@@ -82,7 +82,7 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<GeoMessageDto>> Post([FromBody] GeoMessageDto msg)
-        {           
+        {
 
 
             var entity = await _context.AddAsync(new GeoMessage()
@@ -233,8 +233,8 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<GeoMessageV2Dto>> Post([FromBody] GeoMessageV2Dto msg)
         {
-            var user = await _context.AppUsers.FindAsync(_userManager.GetUserId(User));            
-            
+            var user = await _context.AppUsers.FindAsync(_userManager.GetUserId(User));
+
             var entity = await _context.AddAsync(new GeoMessageV2()
             {
                 Title = msg.Title,
@@ -244,7 +244,9 @@ namespace Api.Controllers
                 Latitude = msg.Latitude
             });
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(Get), new { id = entity.Entity.Id }, msg);
+            return CreatedAtAction(nameof(Get),
+                new { id = entity.Entity.Id },
+                FormatV2(new List<GeoMessageV2> { entity.Entity }).First());
         }
 
         private IEnumerable<GeoMessageV2Dto> FormatV1(List<GeoMessage> entities)
