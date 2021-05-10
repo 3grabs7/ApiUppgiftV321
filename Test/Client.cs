@@ -15,7 +15,7 @@ namespace Test
 {
     public class GeoMessageControllerTests : IClassFixture<WebApplicationFactory<Api.Startup>>
     {
-        public readonly HttpClient _client;
+        private readonly HttpClient _client;
 
         public GeoMessageControllerTests(WebApplicationFactory<Api.Startup> fixture)
         {
@@ -34,7 +34,7 @@ namespace Test
         [Fact]
         public async Task GetWithinRange()
         {
-
+            await Task.CompletedTask;
 
         }
     }

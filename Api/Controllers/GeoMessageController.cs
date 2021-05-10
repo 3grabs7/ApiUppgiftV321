@@ -20,12 +20,12 @@ namespace Api.Controllers
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/BerrasGeoApp")]
     [ApiController]
-    public class GeMessageController : ControllerBase
+    public class GeoMessageController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public GeMessageController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public GeoMessageController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -231,7 +231,7 @@ namespace Api.Controllers
         [HttpPost("[action]")]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<GeoMessageV2Dto>> Post([FromBody] GeoMessageV2Dto msg)
+        public async Task<ActionResult<GeoMessageV2Dto>> Post([FromBody] GeoMessageV2InDto msg)
         {
             var user = await _context.AppUsers.FindAsync(_userManager.GetUserId(User));
 
