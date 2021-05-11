@@ -38,7 +38,9 @@ namespace Api.Controllers
         {
             var entities = await _context.GeoMessages.ToListAsync();
             var entitiesV2 = await _context.GeoMessagesV2.ToListAsync();
+
             if (entities.Count < 1 && entitiesV2.Count < 1) return NoContent();
+
             var result = Enumerable.Empty<GeoMessageDto>()
                 .Concat(Format(entities))
                 .Concat(FormatV2(entitiesV2));
@@ -83,8 +85,6 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<GeoMessageDto>> Post([FromBody] GeoMessageDto msg)
         {
-
-
             var entity = await _context.AddAsync(new GeoMessage()
             {
                 Message = msg.Message,
@@ -173,9 +173,12 @@ namespace Api.Controllers
             if (entity == null) return NoContent();
             var entityDto = new GeoMessageV2Dto()
             {
-                Title = entity.Title,
-                Body = entity.Body,
-                Author = entity.Author,
+                Message = new Message()
+                {
+                    Title = entity.Title,
+                    Body = entity.Body,
+                    Author = entity.Author,
+                },
                 Longitude = entity.Longitude,
                 Latitude = entity.Latitude
             };
@@ -213,6 +216,7 @@ namespace Api.Controllers
             var result = Enumerable.Empty<GeoMessageV2Dto>()
                 .Concat(FormatV1(entitiesV1))
                 .Concat(FormatV2(entitiesV2));
+
 
             if (result.Count() < 1) return NoContent();
 
@@ -255,9 +259,12 @@ namespace Api.Controllers
             {
                 yield return new GeoMessageV2Dto()
                 {
-                    Title = String.Join(" ", entities[i].Message.Split(" ").Take(3)),
-                    Body = entities[i].Message,
-                    Author = "Rando",
+                    Message = new Message()
+                    {
+                        Title = String.Join(" ", entities[i].Message.Split(" ").Take(3)),
+                        Body = entities[i].Message,
+                        Author = "Unknown",
+                    },
                     Longitude = entities[i].Longitude,
                     Latitude = entities[i].Latitude
                 };
@@ -270,9 +277,12 @@ namespace Api.Controllers
             {
                 yield return new GeoMessageV2Dto()
                 {
-                    Title = entities[i].Title,
-                    Body = entities[i].Body,
-                    Author = entities[i].Author,
+                    Message = new Message()
+                    {
+                        Title = entities[i].Title,
+                        Body = entities[i].Body,
+                        Author = entities[i].Author,
+                    },
                     Longitude = entities[i].Longitude,
                     Latitude = entities[i].Latitude
                 };
