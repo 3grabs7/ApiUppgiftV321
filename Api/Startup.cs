@@ -77,6 +77,12 @@ namespace Api
                     c.SwaggerEndpoint("/swagger/v2/swagger.json", "Api v2");
                 });
             }
+            app.UseCors(options =>
+            {
+                options.AllowAnyOrigin();
+                options.AllowAnyHeader();
+                options.AllowAnyMethod();
+            });
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();

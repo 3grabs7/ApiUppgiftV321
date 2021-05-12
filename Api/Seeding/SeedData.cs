@@ -19,8 +19,8 @@ namespace Api.Seeding
             _context = services.GetRequiredService<ApplicationDbContext>();
             _userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
+            // await _context.Database.EnsureDeletedAsync();
+            // await _context.Database.EnsureCreatedAsync();
 
             await _userManager.CreateAsync(new User
             {
