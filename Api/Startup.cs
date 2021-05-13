@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -48,6 +49,7 @@ namespace Api
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Api", Version = "v1" });
                 c.SwaggerDoc("v2", new OpenApiInfo { Title = "Api", Version = "v2" });
+                c.IncludeXmlComments(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Api.xml"), true);
             });
 
             services.AddApiVersioning(options =>
